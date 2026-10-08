@@ -1,4 +1,4 @@
-def get_student() -> dict:
+def get_student() -> tuple[int, dict]:
     name = input("Enter student name: ")
     age = int(input("Enter student age: "))
     student_class = input("Enter student class: ")
@@ -9,19 +9,23 @@ def get_student() -> dict:
         "name": name,
         "age": age,
         "class": student_class,
-        "roll_number": roll_number,
         "marks": marks
     }
 
-    return student
+    return roll_number, student
 
 
-def get_students(n: int) -> list[dict]:
-    students = []
+def get_students(n: int) -> dict:
+    students = {}
 
     for _ in range(n):
-        student = get_student()
-        students.append(student)
+        roll_number, student = get_student()
+
+        if roll_number in students:
+            print("Roll number already exists. Please try again.")
+            continue
+
+        students[roll_number] = student
 
     return students
 
