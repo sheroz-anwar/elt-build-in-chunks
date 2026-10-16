@@ -1,3 +1,4 @@
+
 import math
 
 
@@ -7,13 +8,21 @@ MAX_STUDENTS = 500
 MIN_AGE = 18
 MAX_AGE = 40
 
-MIN_ROLL_NUMBER = 1
-
 MIN_MARKS = 0.0
 MAX_MARKS = 100.0
 
 
 StudentRecord = dict[str, str | int | float]
+
+
+def read_value(prompt: str, converter: type) -> int | float:
+    """Read input and convert it to the requested numeric type."""
+
+    while True:
+        try:
+            return converter(input(prompt).strip())
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
 
 
 def read_int(
@@ -24,11 +33,7 @@ def read_int(
     """Read an integer within the allowed range."""
 
     while True:
-        try:
-            value = int(input(prompt))
-        except ValueError:
-            print("Invalid input. Please enter a whole number.")
-            continue
+        value = read_value(prompt, int)
 
         if value < min_value:
             print(f"Value must be at least {min_value}.")
@@ -49,11 +54,7 @@ def read_float(
     """Read a finite decimal number within the allowed range."""
 
     while True:
-        try:
-            value = float(input(prompt))
-        except ValueError:
-            print("Invalid input. Please enter a number.")
-            continue
+        value = read_value(prompt, float)
 
         if not math.isfinite(value):
             print("Invalid input. Please enter a finite number.")
@@ -77,7 +78,7 @@ def read_non_empty_text(prompt: str) -> str:
         value = " ".join(value.split())
 
         if not value:
-            print("Input cannot be empty.")
+            print("Input cannot be empty. Please enter a value.")
             continue
 
         return value
@@ -100,7 +101,7 @@ def read_name() -> str:
 
         print(
             "Invalid name. Use letters, spaces, "
-            "hyphens or apostrophes only."
+            "hyphens, or apostrophes only."
         )
 
 
@@ -125,49 +126,52 @@ def read_class() -> str:
             return student_class
 
         print(
-            "Invalid class. Enter letters or alphanumeric text, "
-            "not numbers alone."
+            "Invalid class. Use letters or alphanumeric text; "
+            "numbers alone are not allowed."
         )
 
 
-def read_roll_number(existing_roll_numbers: set[int]) -> int:
-    """Read a positive roll number that is not already in use."""
+def read_roll_number(existing_roll_numbers: set[str]) -> str:
+    """Read a valid, unique roll number."""
 
     while True:
-        roll_number = read_int(
-            "Enter roll number: ",
-            MIN_ROLL_NUMBER,
+        roll_number = read_non_empty_text(
+            "Enter roll number (e.g. 32-24): "
         )
 
+        parts = roll_number.split("-")
+
+        if (
+            len(parts) != 2
+            or not all(part.isdigit() for part in parts)
+            or not all(int(part) > 0 for part in parts)
+        ):
+            print(
+                "Invalid roll number. Use the format 32-24 "
+                "with positive numbers on both sides."
+            )
+            continue
+
         if roll_number in existing_roll_numbers:
-            print("This roll number already exists. Try another.")
+            print(
+                "This roll number already exists. "
+                "Please enter a different roll number."
+            )
             continue
 
         return roll_number
 
 
 def get_student(
-    existing_roll_numbers: set[int],
-) -> tuple[int, StudentRecord]:
+    existing_roll_numbers: set[str],
+) -> tuple[str, StudentRecord]:
     """Collect and return one student's roll number and record."""
 
     name = read_name()
-
-    age = read_int(
-        "Enter student age: ",
-        MIN_AGE,
-        MAX_AGE,
-    )
-
+    age = read_int("Enter student age: ", MIN_AGE, MAX_AGE)
     student_class = read_class()
-
     roll_number = read_roll_number(existing_roll_numbers)
-
-    marks = read_float(
-        "Enter marks: ",
-        MIN_MARKS,
-        MAX_MARKS,
-    )
+    marks = read_float("Enter marks: ", MIN_MARKS, MAX_MARKS)
 
     student: StudentRecord = {
         "name": name,
@@ -181,10 +185,10 @@ def get_student(
 
 def get_students(
     number_of_students: int,
-) -> dict[int, StudentRecord]:
+) -> dict[str, StudentRecord]:
     """Collect records for the requested number of students."""
 
-    students: dict[int, StudentRecord] = {}
+    students: dict[str, StudentRecord] = {}
 
     for student_number in range(1, number_of_students + 1):
         print(
@@ -199,9 +203,9 @@ def get_students(
 
 
 def display_students(
-    students: dict[int, StudentRecord],
+    students: dict[str, StudentRecord],
 ) -> None:
-    """Display student records in a readable format and as a dictionary."""
+    """Display student records in a readable format."""
 
     print("\n========== STUDENT RECORDS ==========")
 
@@ -214,23 +218,5 @@ def display_students(
 
     print("\n=====================================")
     print(f"Total students: {len(students)}")
-
     print("\nStudent dictionary:")
     print(students)
-
-
-def main() -> None:
-    """Run the student-records program."""
-
-    number_of_students = read_int(
-        "Enter number of students: ",
-        MIN_STUDENTS,
-        MAX_STUDENTS,
-    )
-
-    students = get_students(number_of_students)
-    display_students(students)
-
-
-if __name__ == "__main__":
-    main()
